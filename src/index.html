@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="utf-8">
+	<link rel="icon" href="favicon.svg" type="image/svg+xml">
+	<title>TBL - Uber Fast Table</title>
+	<style>
+		html,
+		body {
+			height: 100%;
+			width: 100%;
+			margin: 0;
+			font-family: sans-serif;
+			font-size: 16px;
+			color: rgb(52,71,103);
+			outline: none; 
+		}
+
+		.rw { display: flex; height: 20px; }
+		.cl { border: solid; width: 100px; }
+	</style>
+</head>
+<body>
+
+	<div id="root" style="width: 400px; height: 600px; overflow: hidden; border: solid red; position: relative;">
+		<div id="cnt"> </div>
+		<div id="tbl" style="width: 400px; height: 600px; overflow: auto; position: absolute; top: 0;">
+			<div id="scr" style="width:1px;"> </div>
+		</div>
+	</div>
+	
+	<script src="index.js" type="module"></script>
+</body>
+</html>

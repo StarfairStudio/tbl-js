@@ -1,29 +1,42 @@
-import { div, listen } from './utils.js';
+import { div, listen, setStyles } from './utils.js';
 
 const MAX_HEIGHT_PX = 15000000;
 
 /**
- * @param {HTMLDivElement} tblDiv
+ * @param {HTMLDivElement} tableDiv
  * @param {string[]} cols
  * @param {any[][]} rowsData
  */
-export const table = (tblDiv, cols, rowsData) => {
-	const ROW_HEIGHT = 20;
+export const table = (tableDiv, cols, rowsData) => {
+	// TODO: remove hardcode
+	const ROW_HEIGHT_PX = 20;
+	const CELL_WITH_PX = 100;
 
 	//
 	// read dom
 
-	const cntDiv = /** @type {HTMLDivElement} */(document.getElementById('cnt'));
-	const viewPortHeight = tblDiv.clientHeight;
-	const rowsCountViewPort = Math.ceil(viewPortHeight / ROW_HEIGHT) + 1;
-	const allRowsHeight = rowsData.length * ROW_HEIGHT;
+	const viewPortHeight = tableDiv.clientHeight;
+	const viewPortWidth = tableDiv.clientWidth;
+	const rowsCountViewPort = Math.ceil(viewPortHeight / ROW_HEIGHT_PX) + 1;
+	const allRowsHeight = rowsData.length * ROW_HEIGHT_PX;
 	const scrolHeight = Math.min(allRowsHeight, MAX_HEIGHT_PX);
 
 	//
 	// wright dom
 
-	document.getElementById('scr').style.height = `${scrolHeight}px`;
-	const cels = rowsCreate(cntDiv, cols.length, rowsCountViewPort);
+	const [contentDiv, overlayDiv] = tableCreate(
+		tableDiv,
+		// tableDivHeight
+		viewPortHeight,
+		// tableDivWidth
+		viewPortWidth,
+		// scrollDivHeight
+		scrolHeight,
+		// scrollDivWidth
+		CELL_WITH_PX * cols.length
+	);
+
+	const cels = rowsCreate(contentDiv, cols.length, rowsCountViewPort);
 
 	/** @param {number} fromRowsDataIndex */
 	const _cellsFill = fromRowsDataIndex => cellsFill(cels, rowsData, fromRowsDataIndex);
@@ -41,19 +54,55 @@ export const table = (tblDiv, cols, rowsData) => {
 		// This function is also suitable if the height is less than 15 million - but it makes unnecessary calculations
 		: scrlTop => scrlTop / (scrolHeight - viewPortHeight) * (allRowsHeight - viewPortHeight);
 
-	listen(tblDiv, 'scroll', /** @param {Event & {target:HTMLDivElement}} evt */ evt => {
+	listen(overlayDiv, 'scroll', /** @param {Event & {target:HTMLDivElement}} evt */ evt => {
 		scrollTop = scrollTopCalc(evt.target.scrollTop);
-		const translateY = -scrollTop % ROW_HEIGHT;
-		const rowsDataIndex = Math.trunc(scrollTop / ROW_HEIGHT);
+		const translateY = -scrollTop % ROW_HEIGHT_PX;
+		const rowsDataIndex = Math.trunc(scrollTop / ROW_HEIGHT_PX);
+		const scrollLeft = evt.target.scrollLeft;
 
-		cntDiv.style.transform = `translateY(${translateY}px)`;
+		contentDiv.style.transform = `translate(${-scrollLeft}px, ${translateY}px)`;
 		_cellsFill(rowsDataIndex);
 	});
 
-	listen(tblDiv, 'click', /** @param {MouseEvent & {target:HTMLDivElement}} evt */ evt => {
-		const rowsDataIndex = Math.trunc((scrollTop + evt.offsetY) / ROW_HEIGHT);
+	listen(overlayDiv, 'click', /** @param {MouseEvent & {target:HTMLDivElement}} evt */ evt => {
+		// TODO: fix incorrect index when height is more than 15 million
+		// const rowsDataIndex = Math.trunc((scrollTop + evt.offsetY) / ROW_HEIGHT_PX);
+		const rowsDataIndex = Math.trunc(evt.offsetY / ROW_HEIGHT_PX);
+
 		console.log(rowsDataIndex);
 	});
+};
+
+/**
+ * @param {HTMLDivElement} tableDiv
+ * @param {number} tableDivHeight
+ * @param {number} tableDivWidth
+ * @param {number} scrollDivHeight
+ * @param {number} scrollDivWidth
+ */
+const tableCreate = (tableDiv, tableDivHeight, tableDivWidth, scrollDivHeight, scrollDivWidth) => {
+	const contentDiv = div();
+	setStyles(contentDiv, { width: `${scrollDivWidth}px` });
+
+	const overlayDiv = div();
+	setStyles(overlayDiv, {
+		height: `${tableDivHeight}px`,
+		width: `${tableDivWidth}px`,
+		overflow: 'auto',
+		position: 'absolute',
+		top: '0'
+	});
+
+	const scrollDiv = div();
+	setStyles(scrollDiv, {
+		height: `${scrollDivHeight}px`,
+		width: `${scrollDivWidth}px`
+	});
+	overlayDiv.append(scrollDiv);
+
+	tableDiv.append(contentDiv, overlayDiv);
+
+	return [contentDiv, overlayDiv];
 };
 
 /**

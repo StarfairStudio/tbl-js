@@ -46,27 +46,28 @@ export const table = (tableDiv, cols, rowsData) => {
 	// scroll
 
 	let scrollTop = 0;
+	let contentDivTranslateY = 0;
 
 	// if {allRowsHeight} > 15 million -> we have to applay koef on scroll
 	// if {allRowsHeight} <= 15 million -> {scrollYKoef} = 1
 	const scrollYKoef = (allRowsHeight - viewPortHeight) / (scrolHeight - viewPortHeight);
 	listen(overlayDiv, 'scroll', /** @param {Event & {target:HTMLDivElement}} evt */ evt => {
 		scrollTop = evt.target.scrollTop * scrollYKoef;
+		contentDivTranslateY = -scrollTop % ROW_HEIGHT_PX;
 		const scrollLeft = evt.target.scrollLeft;
-
-		const translateY = -scrollTop % ROW_HEIGHT_PX;
 		const topRowDataIndex = Math.trunc(scrollTop / ROW_HEIGHT_PX);
 
-		contentDiv.style.transform = `translate(${-scrollLeft}px, ${translateY}px)`;
+		contentDiv.style.transform = `translate(${-scrollLeft}px, ${contentDivTranslateY}px)`;
 		_cellsFill(topRowDataIndex);
 	});
 
-	listen(overlayDiv, 'click', /** @param {MouseEvent & {target:HTMLDivElement}} evt */ evt => {
-		// TODO: fix incorrect index when height is more than 15 million
-		// const rowsDataIndex = Math.trunc((scrollTop + evt.offsetY) / ROW_HEIGHT_PX);
-		const rowsDataIndex = Math.trunc(evt.offsetY * scrollYKoef / ROW_HEIGHT_PX);
-
-		console.log(scrollTop, evt.offsetY, evt.target.scrollTop, scrollYKoef);
+	listen(tableDiv, 'click', /** @param {MouseEvent & {target:HTMLDivElement}} evt */ evt => {
+		const rowsDataIndex = Math.trunc(
+			// visible DIV position = contentDiv.getBoundingClientRect().y - contentDivTranslateY
+			// position inside visible div = evt.clientY - {visible DIV position}
+			// full position = {scrollTop} + {position inside visible div}
+			(scrollTop + evt.clientY - contentDiv.getBoundingClientRect().y + contentDivTranslateY) / ROW_HEIGHT_PX
+		);
 		console.log(rowsDataIndex);
 	});
 };

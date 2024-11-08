@@ -47,28 +47,26 @@ export const table = (tableDiv, cols, rowsData) => {
 
 	let scrollTop = 0;
 
-	/** @type {(scrlTop:number)=>number} */
-	const scrollTopCalc = allRowsHeight <= MAX_HEIGHT_PX
-		? scrlTop => scrlTop
-		// If the height is more than 15 million.
-		// This function is also suitable if the height is less than 15 million - but it makes unnecessary calculations
-		: scrlTop => scrlTop / (scrolHeight - viewPortHeight) * (allRowsHeight - viewPortHeight);
-
+	// if {allRowsHeight} > 15 million -> we have to applay koef on scroll
+	// if {allRowsHeight} <= 15 million -> {scrollYKoef} = 1
+	const scrollYKoef = (allRowsHeight - viewPortHeight) / (scrolHeight - viewPortHeight);
 	listen(overlayDiv, 'scroll', /** @param {Event & {target:HTMLDivElement}} evt */ evt => {
-		scrollTop = scrollTopCalc(evt.target.scrollTop);
-		const translateY = -scrollTop % ROW_HEIGHT_PX;
-		const rowsDataIndex = Math.trunc(scrollTop / ROW_HEIGHT_PX);
+		scrollTop = evt.target.scrollTop * scrollYKoef;
 		const scrollLeft = evt.target.scrollLeft;
 
+		const translateY = -scrollTop % ROW_HEIGHT_PX;
+		const topRowDataIndex = Math.trunc(scrollTop / ROW_HEIGHT_PX);
+
 		contentDiv.style.transform = `translate(${-scrollLeft}px, ${translateY}px)`;
-		_cellsFill(rowsDataIndex);
+		_cellsFill(topRowDataIndex);
 	});
 
 	listen(overlayDiv, 'click', /** @param {MouseEvent & {target:HTMLDivElement}} evt */ evt => {
 		// TODO: fix incorrect index when height is more than 15 million
 		// const rowsDataIndex = Math.trunc((scrollTop + evt.offsetY) / ROW_HEIGHT_PX);
-		const rowsDataIndex = Math.trunc(evt.offsetY / ROW_HEIGHT_PX);
+		const rowsDataIndex = Math.trunc(evt.offsetY * scrollYKoef / ROW_HEIGHT_PX);
 
+		console.log(scrollTop, evt.offsetY, evt.target.scrollTop, scrollYKoef);
 		console.log(rowsDataIndex);
 	});
 };

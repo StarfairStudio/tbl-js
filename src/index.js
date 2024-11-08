@@ -1,6 +1,6 @@
 import { table } from './table.js';
 
-const ROWS_COUNT = 100; // 1000000;
+const ROWS_COUNT = 1000000;
 const rowsData = new Array(ROWS_COUNT);
 for (let row = 0; row < ROWS_COUNT; row++) {
 	rowsData[row] = [

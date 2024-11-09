@@ -15,6 +15,11 @@ for (let row = 0; row < ROWS_COUNT; row++) {
 
 table(
 	/** @type {HTMLDivElement} */(document.getElementById('tbl')),
+	// rowHeight
+	48,
+	// cell wifth
+	100,
+	// cols
 	[
 		'col1', 'col2', 'col2',
 		'col1', 'col2', 'col2',

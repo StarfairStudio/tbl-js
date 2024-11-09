@@ -4,21 +4,18 @@ const MAX_HEIGHT_PX = 15000000;
 
 /**
  * @param {HTMLDivElement} tableDiv
+ * @param {number} rowHeight
+ * @param {number} cellWidth // TODO: diffenrent col width
  * @param {string[]} cols
  * @param {any[][]} rowsData
  */
-export const table = (tableDiv, cols, rowsData) => {
-	// TODO: remove hardcode
-	const ROW_HEIGHT_PX = 20;
-	const CELL_WITH_PX = 100;
-
+export const table = (tableDiv, rowHeight, cellWidth, cols, rowsData) => {
 	//
 	// read dom
 
 	const viewPortHeight = tableDiv.clientHeight;
-	const viewPortWidth = tableDiv.clientWidth;
-	const rowsCountViewPort = Math.ceil(viewPortHeight / ROW_HEIGHT_PX) + 1;
-	const allRowsHeight = rowsData.length * ROW_HEIGHT_PX;
+	const rowsCountViewPort = Math.ceil(viewPortHeight / rowHeight) + 1;
+	const allRowsHeight = rowsData.length * rowHeight;
 	const scrolHeight = Math.min(allRowsHeight, MAX_HEIGHT_PX);
 
 	//
@@ -28,12 +25,10 @@ export const table = (tableDiv, cols, rowsData) => {
 		tableDiv,
 		// tableDivHeight
 		viewPortHeight,
-		// tableDivWidth
-		viewPortWidth,
 		// scrollDivHeight
 		scrolHeight,
 		// scrollDivWidth
-		CELL_WITH_PX * cols.length
+		cellWidth * cols.length
 	);
 
 	const cels = rowsCreate(contentDiv, cols.length, rowsCountViewPort);
@@ -56,9 +51,9 @@ export const table = (tableDiv, cols, rowsData) => {
 		listen(overlayDiv, 'scroll', /** @param {Event & {target:HTMLDivElement}} evt */ evt => {
 			scrollTop = evt.target.scrollTop * scrollYKoef;
 			scrollLeft = evt.target.scrollLeft;
-			topRowDataIndex = Math.trunc(scrollTop / ROW_HEIGHT_PX);
+			topRowDataIndex = Math.trunc(scrollTop / rowHeight);
 
-			contentDiv.style.transform = `translate(${-scrollLeft}px, ${-scrollTop % ROW_HEIGHT_PX}px)`;
+			contentDiv.style.transform = `translate(${-scrollLeft}px, ${-scrollTop % rowHeight}px)`;
 			_cellsFill(topRowDataIndex);
 		});
 	}
@@ -66,7 +61,7 @@ export const table = (tableDiv, cols, rowsData) => {
 	listen(overlayDiv, 'click', /** @param {MouseEvent & {target:HTMLDivElement}} evt */ evt => {
 		const rowsDataIndex = Math.trunc(
 			// evt.offsetY - overlayDiv.scrollTop = position in table viewPort
-			(scrollTop + evt.offsetY - overlayDiv.scrollTop) / ROW_HEIGHT_PX
+			(scrollTop + evt.offsetY - overlayDiv.scrollTop) / rowHeight
 		);
 		console.log(rowsDataIndex);
 	});
@@ -75,21 +70,22 @@ export const table = (tableDiv, cols, rowsData) => {
 /**
  * @param {HTMLDivElement} tableDiv
  * @param {number} tableDivHeight
- * @param {number} tableDivWidth
  * @param {number} scrollDivHeight
  * @param {number} scrollDivWidth
  */
-const tableCreate = (tableDiv, tableDivHeight, tableDivWidth, scrollDivHeight, scrollDivWidth) => {
+const tableCreate = (tableDiv, tableDivHeight, scrollDivHeight, scrollDivWidth) => {
 	const contentDiv = div();
 	setStyles(contentDiv, { width: `${scrollDivWidth}px` });
 
 	const overlayDiv = div();
 	setStyles(overlayDiv, {
 		height: `${tableDivHeight}px`,
-		width: `${tableDivWidth}px`,
+		width: '100%',
 		overflow: 'auto',
 		position: 'absolute',
-		top: '0'
+		top: '0',
+		// @ts-ignore
+		scrollbarWidth: 'thin'
 	});
 
 	const scrollDiv = div();

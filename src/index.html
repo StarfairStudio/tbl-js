@@ -4,28 +4,20 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta charset="utf-8">
 	<link rel="icon" href="favicon.svg" type="image/svg+xml">
+	<link href="assets/font/font.css" rel="stylesheet">
 	<title>TBL - Uber Fast Table</title>
 	<style>
-		html,
-		body {
-			height: 100%;
-			width: 100%;
-			margin: 0;
-			font-family: sans-serif;
-			font-size: 16px;
-			color: rgb(52,71,103);
-			outline: none; 
-		}
-
-		.rw { display: flex; height: 20px; }
-		.cl { border: solid; width: 100px; }
+		html, body { height: 100%; width: 100%; margin: 0; font-family: 'Roboto', sans-serif; font-size: 16px; color: #344767; outline: none; }
+		.rw { display: flex; height: 48px; }
+		.cl { border-bottom: 1px solid #d6dae1; width: 100px; padding: 5px; content-visibility: auto; }
 	</style>
 </head>
-<body>
-
-	<div id="tbl" style="width: 400px; height: 600px; overflow: hidden; border: solid red; position: relative; margin-top: 20px;">
-	</div>
-	
+<body style="display: flex; flex-direction: column;">
+	<header style="height: 64px;"></header>
+	<main id="tbl" style="height: 100%; overflow: hidden; position: relative; flex: auto;">
+		<!-- <header>11</header> -->
+	</main>
+	<foote style="height: 48px;"></footer>
 	<script src="index.js" type="module"></script>
 </body>
 </html>

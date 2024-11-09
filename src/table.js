@@ -46,27 +46,27 @@ export const table = (tableDiv, cols, rowsData) => {
 	// scroll
 
 	let scrollTop = 0;
-	let contentDivTranslateY = 0;
+	let scrollLeft = 0;
 
-	// if {allRowsHeight} > 15 million -> we have to applay koef on scroll
-	// if {allRowsHeight} <= 15 million -> {scrollYKoef} = 1
-	const scrollYKoef = (allRowsHeight - viewPortHeight) / (scrolHeight - viewPortHeight);
-	listen(overlayDiv, 'scroll', /** @param {Event & {target:HTMLDivElement}} evt */ evt => {
-		scrollTop = evt.target.scrollTop * scrollYKoef;
-		contentDivTranslateY = -scrollTop % ROW_HEIGHT_PX;
-		const scrollLeft = evt.target.scrollLeft;
-		const topRowDataIndex = Math.trunc(scrollTop / ROW_HEIGHT_PX);
+	{
+		// if {allRowsHeight} > 15 million -> we have to applay koef on scroll
+		// if {allRowsHeight} <= 15 million -> {scrollYKoef} = 1
+		const scrollYKoef = (allRowsHeight - viewPortHeight) / (scrolHeight - viewPortHeight);
+		let topRowDataIndex = 0;
+		listen(overlayDiv, 'scroll', /** @param {Event & {target:HTMLDivElement}} evt */ evt => {
+			scrollTop = evt.target.scrollTop * scrollYKoef;
+			scrollLeft = evt.target.scrollLeft;
+			topRowDataIndex = Math.trunc(scrollTop / ROW_HEIGHT_PX);
 
-		contentDiv.style.transform = `translate(${-scrollLeft}px, ${contentDivTranslateY}px)`;
-		_cellsFill(topRowDataIndex);
-	});
+			contentDiv.style.transform = `translate(${-scrollLeft}px, ${-scrollTop % ROW_HEIGHT_PX}px)`;
+			_cellsFill(topRowDataIndex);
+		});
+	}
 
-	listen(tableDiv, 'click', /** @param {MouseEvent & {target:HTMLDivElement}} evt */ evt => {
+	listen(overlayDiv, 'click', /** @param {MouseEvent & {target:HTMLDivElement}} evt */ evt => {
 		const rowsDataIndex = Math.trunc(
-			// visible DIV position = contentDiv.getBoundingClientRect().y - contentDivTranslateY
-			// position inside visible div = evt.clientY - {visible DIV position}
-			// full position = {scrollTop} + {position inside visible div}
-			(scrollTop + evt.clientY - contentDiv.getBoundingClientRect().y + contentDivTranslateY) / ROW_HEIGHT_PX
+			// evt.offsetY - overlayDiv.scrollTop = position in table viewPort
+			(scrollTop + evt.offsetY - overlayDiv.scrollTop) / ROW_HEIGHT_PX
 		);
 		console.log(rowsDataIndex);
 	});

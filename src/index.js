@@ -14,6 +14,11 @@ for (let row = 0; row < ROWS_COUNT; row++) {
 }
 
 table(
+	// headerDiv
+	/** @type {HTMLDivElement} */(document.getElementById('hdr')),
+	// colRowNumDiv
+	/** @type {HTMLDivElement} */(document.getElementById('nums')),
+	// tableDiv
 	/** @type {HTMLDivElement} */(document.getElementById('tbl')),
 	// rowHeight
 	48,

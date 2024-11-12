@@ -5,8 +5,22 @@ export const div = className => {
 	return d;
 };
 
+/** @param {string} str, @param {string=} className */
+export const divWithContent = (str, className) => {
+	const d = div(className);
+	d.textContent = str;
+	return d;
+};
+
+/** @param {Partial<CSSStyleDeclaration>} styles */
+export const divWithStyles = styles => {
+	const d = div();
+	setStyles(d, styles);
+	return d;
+};
+
 /** @param {HTMLDivElement} el, @param {Partial<CSSStyleDeclaration>} styles */
-export const setStyles = (el, styles) =>
+const setStyles = (el, styles) =>
 	Object.entries(styles).forEach(style => { el.style[style[0]] = style[1]; });
 
 /**

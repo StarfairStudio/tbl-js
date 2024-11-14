@@ -9,9 +9,10 @@ const MAX_HEIGHT_PX = 15000000;
  * @param {number} rowHeight
  * @param {number} cellWidth // TODO: diffenrent col width
  * @param {string[]} cols
+ * @param {number} rowsCount
  * @param {any[][]} rowsData
  */
-export const table = (headerDiv, numsDiv, tableDiv, rowHeight, cellWidth, cols, rowsData) => {
+export const table = (headerDiv, numsDiv, tableDiv, rowHeight, cellWidth, cols, rowsCount, rowsData) => {
 	let topRowDataIndex = 0;
 
 	//
@@ -19,7 +20,7 @@ export const table = (headerDiv, numsDiv, tableDiv, rowHeight, cellWidth, cols, 
 
 	const viewPortHeight = tableDiv.clientHeight;
 	const rowsCountViewPort = Math.ceil(viewPortHeight / rowHeight) + 1;
-	const allRowsHeight = rowsData.length * rowHeight;
+	const allRowsHeight = rowsCount * rowHeight;
 	const scrolHeight = Math.min(allRowsHeight, MAX_HEIGHT_PX);
 
 	//
@@ -47,7 +48,7 @@ export const table = (headerDiv, numsDiv, tableDiv, rowHeight, cellWidth, cols, 
 
 	const numsContentDiv = numsColCreate(numsDiv, viewPortHeight);
 	const numsCels = numsCellsCreate(numsContentDiv, rowsCountViewPort);
-	const _numsCellsFill = () => numsCellsFill(numsCels, topRowDataIndex, rowsData.length);
+	const _numsCellsFill = () => numsCellsFill(numsCels, topRowDataIndex, rowsCount);
 	_numsCellsFill();
 
 	//

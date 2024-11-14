@@ -1,3 +1,5 @@
+// DOM
+
 /** @param {string=} className } */
 export const div = className => {
 	const d = document.createElement('div');
@@ -32,3 +34,8 @@ export const listen = (el, type, listener) => {
 	el.addEventListener(type, listener, { passive: true });
 	return listener;
 };
+
+// Other
+
+/** @param {any[]} srcArray, @param {any[]} arrayToAdd */
+export const arrExtend = (srcArray, arrayToAdd) => arrayToAdd.forEach(el => srcArray.push(el));

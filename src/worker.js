@@ -1,11 +1,21 @@
 import { dataGenerate } from './data-generator.js';
+import { arrExtend } from './utils.js';
 
-/** @param {MessageEvent<[number, number]>} evt */
+const data = [];
+
+/** @param {MessageEvent<[number, any[][], number, number]>} evt */
 onmessage = function (evt) {
+	switch (evt.data[0]) {
+		case 0: dataInit(evt.data[1], evt.data[2], evt.data[3]);
+			break;
+	}
+};
+
+/** @param {any[][]} initData, @param {number} rowsCount, @param {number} colCount */
+const dataInit = (initData, rowsCount, colCount) => {
 	const CHUNK_SIZE = 10000;
 
-	const rowsCount = evt.data[0];
-	const colCount = evt.data[1];
+	arrExtend(data, initData);
 	const chunkFullCount = Math.trunc(rowsCount / CHUNK_SIZE);
 	const post = /** @param {number} rwCount */ rwCount => postMessage(dataGenerate(rwCount, colCount));
 

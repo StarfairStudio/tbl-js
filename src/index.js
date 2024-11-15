@@ -1,4 +1,3 @@
-// import { dataEmptyGenerate, dataFill } from './data-generator.js';
 import { dataGenerate } from './data-generator.js';
 import { table } from './table.js';
 import { arrExtend, listen } from './utils.js';
@@ -7,7 +6,7 @@ const data = dataGenerate(500, 20);
 
 const worker = new Worker(new URL('worker.js', import.meta.url), { type: 'module' });
 listen(worker, 'message', /** @param {MessageEvent<any[][]>} evt */ evt => arrExtend(data, evt.data));
-worker.postMessage([999500, 20]);
+worker.postMessage([0, data, 999500, 20]);
 
 table(
 	// headerDiv

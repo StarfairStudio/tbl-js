@@ -1,10 +1,13 @@
 // import { dataEmptyGenerate, dataFill } from './data-generator.js';
 import { dataGenerate } from './data-generator.js';
 import { table } from './table.js';
-import { arrExtend } from './utils.js';
+import { arrExtend, listen } from './utils.js';
 
 const data = dataGenerate(500, 20);
-setTimeout(() => arrExtend(data, dataGenerate(999500, 20)), 100);
+
+const worker = new Worker(new URL('worker.js', import.meta.url), { type: 'module' });
+listen(worker, 'message', /** @param {MessageEvent<any[][]>} evt */ evt => arrExtend(data, evt.data));
+worker.postMessage([999500, 20]);
 
 table(
 	// headerDiv

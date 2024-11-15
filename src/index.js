@@ -20,15 +20,7 @@ table(
 	// cell wifth
 	250,
 	// cols
-	[
-		'col1', 'col2', 'col2',
-		'col1', 'col2', 'col2',
-		'col1', 'col2', 'col2',
-		'col1', 'col2', 'col2',
-		'col1', 'col2', 'col2',
-		'col1', 'col2', 'col2',
-		'col1', 'col2', 'col2'
-	],
+	['Name', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T'],
 	// rowsCount
 	1000000,
 	data

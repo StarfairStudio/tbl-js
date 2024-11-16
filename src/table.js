@@ -11,8 +11,9 @@ const MAX_HEIGHT_PX = 15000000;
  * @param {string[]} cols
  * @param {number} rowsCount
  * @param {any[][]} rowsData
+ * @param {{r:Uint32Array}} rowsToDisplay
  */
-export const table = (headerDiv, numsDiv, tableDiv, rowHeight, cellWidth, cols, rowsCount, rowsData) => {
+export const table = (headerDiv, numsDiv, tableDiv, rowHeight, cellWidth, cols, rowsCount, rowsData, rowsToDisplay) => {
 	let topRowDataIndex = 0;
 
 	//
@@ -41,15 +42,20 @@ export const table = (headerDiv, numsDiv, tableDiv, rowHeight, cellWidth, cols, 
 		cellWidth * cols.length
 	);
 	const tableCells = rowsCreate(tableContentDiv, cols.length, rowsCountViewPort);
-	const _tableCellsFill = () => tableCellsFill(tableCells, rowsData, topRowDataIndex);
-	_tableCellsFill();
+	// const _tableCellsFill = () => tableCellsFill(tableCells, rowsData, rowsToDisplay, topRowDataIndex);
+	// _tableCellsFill();
 
 	// nums column
-
 	const numsContentDiv = numsColCreate(numsDiv, viewPortHeight);
 	const numsCels = numsCellsCreate(numsContentDiv, rowsCountViewPort);
-	const _numsCellsFill = () => numsCellsFill(numsCels, topRowDataIndex, rowsCount);
-	_numsCellsFill();
+	// const _numsCellsFill = () => numsCellsFill(numsCels, topRowDataIndex, rowsCount);
+	// _numsCellsFill();
+
+	const cellsFill = () => {
+		tableCellsFill(tableCells, rowsData, rowsToDisplay, topRowDataIndex);
+		numsCellsFill(numsCels, topRowDataIndex, rowsCount);
+	};
+	cellsFill();
 
 	//
 	// scroll
@@ -70,10 +76,11 @@ export const table = (headerDiv, numsDiv, tableDiv, rowHeight, cellWidth, cols, 
 
 			headerDiv.style.transform = `translateX(${scrollLeft}px)`;
 			tableContentDiv.style.transform = `translate(${scrollLeft}px, ${translateY}px)`;
-			_tableCellsFill();
+			// _tableCellsFill();
 
 			numsContentDiv.style.transform = `translateY(${translateY}px)`;
-			_numsCellsFill();
+			// _numsCellsFill();
+			cellsFill();
 		});
 	}
 
@@ -84,6 +91,8 @@ export const table = (headerDiv, numsDiv, tableDiv, rowHeight, cellWidth, cols, 
 		);
 		console.log(rowsDataIndex);
 	});
+
+	return cellsFill;
 };
 
 /**
@@ -115,20 +124,22 @@ const tableCreate = (tableDiv, tableDivHeight, scrollDivHeight, scrollDivWidth) 
 /**
  * @param {HTMLDivElement[][]} tableCells
  * @param {any[][]} rowsData
+ * @param {{r:Uint32Array}} rowsToDisplay
  * @param {number} fromRowsDataIndex
  */
-const tableCellsFill = (tableCells, rowsData, fromRowsDataIndex) => {
+const tableCellsFill = (tableCells, rowsData, rowsToDisplay, fromRowsDataIndex) => {
 	let row = 0;
-	for (; fromRowsDataIndex < rowsData.length && row < tableCells.length; fromRowsDataIndex++, row++) {
-		const rowData = rowsData[fromRowsDataIndex];
+	for (; fromRowsDataIndex < rowsToDisplay.r.length && fromRowsDataIndex < rowsData.length && row < tableCells.length; fromRowsDataIndex++, row++) {
+		const rowData = rowsData[rowsToDisplay.r[fromRowsDataIndex]];
 		tableCells[row].forEach((cellDiv, col) => {
 			cellDiv.textContent = rowData[col];
 		});
-		tableCells[row][0].parentElement.style.display = 'flex';
+		// tableCells[row][0].parentElement.style.display = 'flex';
 	}
 
 	for (; row < tableCells.length; row++) {
-		tableCells[row][0].parentElement.style.display = 'none';
+		// tableCells[row][0].parentElement.style.display = 'none';
+		tableCells[row].forEach(cellDiv => { cellDiv.textContent = null; });
 	}
 };
 

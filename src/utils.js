@@ -39,3 +39,12 @@ export const listen = (el, type, listener) => {
 
 /** @param {any[]} srcArray, @param {any[]} arrayToAdd */
 export const arrExtend = (srcArray, arrayToAdd) => arrayToAdd.forEach(el => srcArray.push(el));
+
+/** @param {number} length */
+export const uint32ArrayWithNumbers = length => {
+	const array = new Uint32Array(length);
+	for (let ii = 0; ii < length; ii++) {
+		array[ii] = ii;
+	}
+	return array;
+};

@@ -35,7 +35,10 @@ export const listen = (el, type, listener) => {
 	return listener;
 };
 
-// Other
+/** @param {string} id */
+export const getById = id => document.getElementById(id);
+
+// array
 
 /** @param {any[]} srcArray, @param {any[]} arrayToAdd */
 export const arrExtend = (srcArray, arrayToAdd) => arrayToAdd.forEach(el => srcArray.push(el));
@@ -47,4 +50,100 @@ export const uint32ArrayWithNumbers = length => {
 		array[ii] = ii;
 	}
 	return array;
+};
+
+// /**
+//  * @template T
+//  * @param {T[]} arr
+//  * @param {number} firstChunkSize
+//  * @param {number} chunkSize
+//  * @param {()=>void} firstChunkCallBack
+//  * @param {()=>void} chunkCallBack
+//  * @param {(el:T)=>void} forEachCallBack
+//  */
+// export const arrForEachChunk = (arr, firstChunkSize, chunkSize, firstChunkCallBack, chunkCallBack, forEachCallBack) => {
+// 	let row = 0;
+
+// 	/** @param {number} size */
+// 	const processChunk = size => {
+// 		const chunkLastIndex = row + size;
+// 		for (; row < chunkLastIndex; row++) {
+// 			forEachCallBack(arr[row]);
+// 		}
+// 	};
+
+// 	// first chunk
+// 	processChunk(Math.min(arr.length, firstChunkSize));
+// 	firstChunkCallBack();
+
+// 	// next chunks
+// 	{
+// 		/** @param {number} size */
+// 		const process = size => {
+// 			processChunk(size);
+// 			chunkCallBack();
+// 		};
+
+// 		const fullChunksCount = Math.trunc((arr.length - row) / chunkSize);
+// 		for (let chunkIndex = 0; chunkIndex < fullChunksCount; chunkIndex++) {
+// 			process(chunkSize);
+// 		}
+// 		process(arr.length - row);
+// 	}
+// };
+/**
+ * @template T
+ * @param {T[]} arr
+ * @param {number} chunkSize
+ * @param {(el:T, ii:number)=>void} forEachCallBack
+ * @param {()=>void} chunkCallBack
+ */
+export const arrForEachChunk = (arr, chunkSize, forEachCallBack, chunkCallBack) => {
+	let ii = 0;
+
+	/** @param {number} size */
+	const processChunk = size => {
+		const chunkLastIndex = ii + size;
+		for (; ii < chunkLastIndex; ii++) {
+			forEachCallBack(arr[ii], ii);
+		}
+		chunkCallBack();
+	};
+
+	const fullChunksCount = Math.trunc(arr.length / chunkSize);
+	for (let chunkIndex = 0; chunkIndex < fullChunksCount; chunkIndex++) {
+		processChunk(chunkSize);
+	}
+	processChunk(arr.length - ii);
+};
+
+// events
+
+/** @param {Function} func, @param {number} ms */
+export const throttle = (func, ms) => {
+	let isThrottled = false;
+	let savedArgs;
+	let savedThis;
+
+	function wrapper() {
+		if (isThrottled) {
+			savedArgs = arguments;
+			savedThis = this;
+			return;
+		}
+
+		func.apply(this, arguments);
+
+		isThrottled = true;
+
+		setTimeout(function () {
+			isThrottled = false;
+			if (savedArgs) {
+				wrapper.apply(savedThis, savedArgs);
+				savedArgs = savedThis = null;
+			}
+		}, ms);
+	}
+
+	return wrapper;
 };

@@ -5,6 +5,7 @@
 	<meta charset="utf-8">
 	<link rel="icon" href="favicon.svg" type="image/svg+xml">
 	<link rel="modulepreload" href="index.js" />
+	<link rel="modulepreload" href="worker.js" />
 	<title>TBL - Uber Fast Table</title>
 	<style>
 		html, body { height: 100%; width: 100%; margin: 0; font-family: sans-serif; font-size: 16px; color: #344767; outline: none; }
@@ -16,7 +17,7 @@
 </head>
 <body style="display: flex; flex-direction: column; overflow: hidden;">
 	<header style="height: 64px;">
-		HEADER
+		<input id="serch" type="text" />
 	</header>
 
 	<div style="height: 30px; display: flex; flex-direction: row; border-bottom: 1px solid #97A1B1; box-sizing: border-box;">

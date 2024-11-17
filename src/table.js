@@ -7,7 +7,7 @@ const MAX_HEIGHT_PX = 15000000;
  * @param {HTMLDivElement} numsDiv
  * @param {HTMLDivElement} tableDiv
  * @param {number} rowHeight
- * @param {number} cellWidth // TODO: diffenrent col width
+ * @param {number} cellWidth // TODO: different col width
  * @param {string[]} cols
  * @param {number} rowsCount
  * @param {any[][]} rowsData
@@ -42,14 +42,10 @@ export const table = (headerDiv, numsDiv, tableDiv, rowHeight, cellWidth, cols, 
 		cellWidth * cols.length
 	);
 	const tableCells = rowsCreate(tableContentDiv, cols.length, rowsCountViewPort);
-	// const _tableCellsFill = () => tableCellsFill(tableCells, rowsData, rowsToDisplay, topRowDataIndex);
-	// _tableCellsFill();
 
 	// nums column
 	const numsContentDiv = numsColCreate(numsDiv, viewPortHeight);
 	const numsCels = numsCellsCreate(numsContentDiv, rowsCountViewPort);
-	// const _numsCellsFill = () => numsCellsFill(numsCels, topRowDataIndex, rowsCount);
-	// _numsCellsFill();
 
 	const cellsFill = () => {
 		tableCellsFill(tableCells, rowsData, rowsToDisplay, topRowDataIndex);
@@ -134,11 +130,9 @@ const tableCellsFill = (tableCells, rowsData, rowsToDisplay, fromRowsDataIndex) 
 		tableCells[row].forEach((cellDiv, col) => {
 			cellDiv.textContent = rowData[col];
 		});
-		// tableCells[row][0].parentElement.style.display = 'flex';
 	}
 
 	for (; row < tableCells.length; row++) {
-		// tableCells[row][0].parentElement.style.display = 'none';
 		tableCells[row].forEach(cellDiv => { cellDiv.textContent = null; });
 	}
 };

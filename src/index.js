@@ -1,22 +1,18 @@
 import { dataGenerate } from './data-generator.js';
 import { table } from './table.js';
-import { arrExtend, listen, uint32ArrayWithNumbers } from './utils.js';
+import { arrExtend, getById, listen, throttle, uint32ArrayWithNumbers } from './utils.js';
 
 /** Indexes in {data} to display. Used for filtering and sorting */
 const rowsToDisplay = { r: uint32ArrayWithNumbers(1_000_000) };
 const data = dataGenerate(500, 20);
 
-const worker = new Worker(new URL('worker.js', import.meta.url), { type: 'module' });
-listen(worker, 'message', /** @param {MessageEvent<any[][]>} evt */ evt => arrExtend(data, evt.data));
-worker.postMessage([0, data, 999_500, 20]);
-
-table(
+const draw = table(
 	// headerDiv
-	/** @type {HTMLDivElement} */(document.getElementById('hdr')),
+	/** @type {HTMLDivElement} */(getById('hdr')),
 	// colRowNumDiv
-	/** @type {HTMLDivElement} */(document.getElementById('nums')),
+	/** @type {HTMLDivElement} */(getById('nums')),
 	// tableDiv
-	/** @type {HTMLDivElement} */(document.getElementById('tbl')),
+	/** @type {HTMLDivElement} */(getById('tbl')),
 	// rowHeight
 	48,
 	// cell wifth
@@ -30,3 +26,20 @@ table(
 	// rowsToDisplay
 	rowsToDisplay
 );
+
+const worker = new Worker(new URL('worker.js', import.meta.url), { type: 'module' });
+listen(worker, 'message', /** @param {MessageEvent<import('./worker.js').InitResponceMessageData & import('./worker.js').FilterResponceMessageData>} evt */ evt => {
+	switch (evt.data[0]) {
+		case 1: {
+			rowsToDisplay.r = evt.data[1];
+			draw();
+			break;
+		}
+		case 0: arrExtend(data, evt.data[1]); break;
+	}
+});
+worker.postMessage(/** @type {import('./worker.js').InitMessageData} */([0, data, 999_500, 20]));
+
+listen(/** @type {HTMLInputElement} */(getById('serch')), 'input', throttle(/** @param {InputEvent & { target: HTMLInputElement}} evt */ evt => {
+	worker.postMessage(/** @type {import('./worker.js').FilterMessageData} */([1, evt.target.value.toLowerCase()]));
+}, 200));

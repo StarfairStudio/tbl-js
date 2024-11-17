@@ -6,8 +6,8 @@ const data = [];
 /** @param {MessageEvent<InitMessageData & FilterMessageData>} evt */
 onmessage = function (evt) {
 	switch (evt.data[0]) {
-		case 0: dataInit(evt.data[1], evt.data[2], evt.data[3]); break;
 		case 1: filter(evt.data[1]); break;
+		case 0: dataInit(evt.data[1], evt.data[2], evt.data[3]); break;
 	}
 };
 

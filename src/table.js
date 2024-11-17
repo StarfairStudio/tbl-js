@@ -58,27 +58,25 @@ export const table = (headerDiv, numsDiv, tableDiv, rowHeight, cellWidth, cols, 
 
 	let scrollTop = 0;
 	let scrollLeft = 0;
+	let translateY = 0;
+	const scroll = () => {
+		tableContentDiv.style.transform = `translate(${scrollLeft}px, ${translateY}px)`;
+		numsContentDiv.style.transform = `translateY(${translateY}px)`;
+	};
 
-	{
-		// if {allRowsHeight} > 15 million -> we have to applay koef on scroll
-		// if {allRowsHeight} <= 15 million -> {scrollYKoef} = 1
-		const scrollYKoef = (allRowsHeight - viewPortHeight) / (scrolHeight - viewPortHeight);
-		let translateY = 0;
-		listen(tableOverlayDiv, 'scroll', /** @param {Event & {target:HTMLDivElement}} evt */ evt => {
-			scrollTop = evt.target.scrollTop * scrollYKoef;
-			scrollLeft = -evt.target.scrollLeft;
-			topRowDataIndex = Math.trunc(scrollTop / rowHeight);
-			translateY = -scrollTop % rowHeight;
+	// if {allRowsHeight} > 15 million -> we have to applay koef on scroll
+	// if {allRowsHeight} <= 15 million -> {scrollYKoef} = 1
+	const scrollYKoef = (allRowsHeight - viewPortHeight) / (scrolHeight - viewPortHeight);
+	listen(tableOverlayDiv, 'scroll', /** @param {Event & {target:HTMLDivElement}} evt */ evt => {
+		scrollTop = evt.target.scrollTop * scrollYKoef;
+		scrollLeft = -evt.target.scrollLeft;
+		topRowDataIndex = Math.trunc(scrollTop / rowHeight);
+		translateY = -scrollTop % rowHeight;
 
-			headerDiv.style.transform = `translateX(${scrollLeft}px)`;
-			tableContentDiv.style.transform = `translate(${scrollLeft}px, ${translateY}px)`;
-			// _tableCellsFill();
-
-			numsContentDiv.style.transform = `translateY(${translateY}px)`;
-			// _numsCellsFill();
-			cellsFill();
-		});
-	}
+		headerDiv.style.transform = `translateX(${scrollLeft}px)`;
+		scroll();
+		cellsFill();
+	});
 
 	listen(tableOverlayDiv, 'click', /** @param {MouseEvent & {target:HTMLDivElement}} evt */ evt => {
 		const rowsDataIndex = Math.trunc(
@@ -88,7 +86,17 @@ export const table = (headerDiv, numsDiv, tableDiv, rowHeight, cellWidth, cols, 
 		console.log(rowsDataIndex);
 	});
 
-	return cellsFill;
+	return {
+		cellsFill,
+		scrollTop: () => {
+			scrollTop = 0;
+			translateY = 0;
+			topRowDataIndex = 0;
+			tableOverlayDiv.scrollTo({ top: 0 });
+			scroll();
+			cellsFill();
+		}
+	};
 };
 
 /**

@@ -6,7 +6,7 @@ import { arrExtend, getById, listen, throttle, uint32ArrayWithNumbers } from './
 const rowsToDisplay = { r: uint32ArrayWithNumbers(1_000_000) };
 const data = dataGenerate(500, 20);
 
-const draw = table(
+const tbl = table(
 	// headerDiv
 	/** @type {HTMLDivElement} */(getById('hdr')),
 	// colRowNumDiv
@@ -32,7 +32,7 @@ listen(worker, 'message', /** @param {MessageEvent<import('./worker.js').InitRes
 	switch (evt.data[0]) {
 		case 1: {
 			rowsToDisplay.r = evt.data[1];
-			draw();
+			tbl.cellsFill();
 			break;
 		}
 		case 0: arrExtend(data, evt.data[1]); break;
@@ -42,4 +42,5 @@ worker.postMessage(/** @type {import('./worker.js').InitMessageData} */([0, data
 
 listen(/** @type {HTMLInputElement} */(getById('serch')), 'input', throttle(/** @param {InputEvent & { target: HTMLInputElement}} evt */ evt => {
 	worker.postMessage(/** @type {import('./worker.js').FilterMessageData} */([1, evt.target.value.toLowerCase()]));
+	tbl.scrollTop();
 }, 200));

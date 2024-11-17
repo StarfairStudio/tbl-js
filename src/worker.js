@@ -36,7 +36,6 @@ const filter = str => {
 		const arr = new Uint32Array(rowsToDisplay);
 		// @ts-ignore
 		self.postMessage([1, arr], [arr.buffer]);
-		console.log('post', rowsToDisplay.length);
 	};
 
 	let postedRowsCount = 0;
@@ -52,9 +51,8 @@ const filter = str => {
 		};
 
 		if (search()) {
+			// first 100 found
 			if (rowsToDisplay.length === 100) {
-				// first 100 found
-				console.log('first 100 found');
 				postedRowsCount = rowsToDisplay.length;
 				post();
 				forEachCallBack = () => search();

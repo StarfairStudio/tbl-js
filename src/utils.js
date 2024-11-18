@@ -122,31 +122,31 @@ export const arrForEachChunk = async (arr, chunkSize, forEachCallBack, chunkEndC
 /** @param {number=} ms */
 export const wait = ms =>	new Promise(resolve => setTimeout(resolve, ms ?? 0));
 
-/** @param {Function} func, @param {number} ms */
-export const throttle = (func, ms) => {
-	let isThrottled = false;
-	let savedArgs;
-	let savedThis;
+// /** @param {Function} func, @param {number} ms */
+// export const throttle = (func, ms) => {
+// 	let isThrottled = false;
+// 	let savedArgs;
+// 	let savedThis;
 
-	function wrapper() {
-		if (isThrottled) {
-			savedArgs = arguments;
-			savedThis = this;
-			return;
-		}
+// 	function wrapper() {
+// 		if (isThrottled) {
+// 			savedArgs = arguments;
+// 			savedThis = this;
+// 			return;
+// 		}
 
-		func.apply(this, arguments);
+// 		func.apply(this, arguments);
 
-		isThrottled = true;
+// 		isThrottled = true;
 
-		setTimeout(function () {
-			isThrottled = false;
-			if (savedArgs) {
-				wrapper.apply(savedThis, savedArgs);
-				savedArgs = savedThis = null;
-			}
-		}, ms);
-	}
+// 		setTimeout(function () {
+// 			isThrottled = false;
+// 			if (savedArgs) {
+// 				wrapper.apply(savedThis, savedArgs);
+// 				savedArgs = savedThis = null;
+// 			}
+// 		}, ms);
+// 	}
 
-	return wrapper;
-};
+// 	return wrapper;
+// };

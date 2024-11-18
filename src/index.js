@@ -1,6 +1,6 @@
 import { dataGenerate } from './data-generator.js';
 import { table } from './table.js';
-import { arrExtend, getById, listen, throttle, uint32ArrayWithNumbers } from './utils.js';
+import { arrExtend, getById, listen, uint32ArrayWithNumbers } from './utils.js';
 
 /** Indexes in {data} to display. Used for filtering and sorting */
 const rowsToDisplay = { r: uint32ArrayWithNumbers(1_000_000) };
@@ -40,8 +40,8 @@ listen(worker, 'message', /** @param {MessageEvent<import('./worker.js').InitRes
 });
 worker.postMessage(/** @type {import('./worker.js').InitMessageData} */([0, data, 999_500, 20]));
 
-listen(/** @type {HTMLInputElement} */(getById('serch')), 'input', throttle(/** @param {InputEvent & { target: HTMLInputElement}} evt */ evt => {
+listen(/** @type {HTMLInputElement} */(getById('serch')), 'input', /** @param {InputEvent & { target: HTMLInputElement}} evt */ evt => {
 	rowsToDisplay.r = new Uint32Array(0);
 	worker.postMessage(/** @type {import('./worker.js').FilterMessageData} */([1, evt.target.value.toLowerCase()]));
 	tbl.scrollTop();
-}, 200));
+});

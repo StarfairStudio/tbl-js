@@ -1,12 +1,12 @@
 import { dataGenerate } from './data-generator.js';
-import { arrExtend, arrForEachChunk } from './utils.js';
+import { arrExtend, arrForEachChunk, wait } from './utils.js';
 
 const data = [];
 
 /** @param {MessageEvent<InitMessageData & FilterMessageData>} evt */
-onmessage = function (evt) {
+onmessage = async function (evt) {
 	switch (evt.data[0]) {
-		case 1: filter(evt.data[1]); break;
+		case 1: await filter(evt.data[1]); break;
 		case 0: dataInit(evt.data[1], evt.data[2], evt.data[3]); break;
 	}
 };
@@ -29,8 +29,13 @@ const dataInit = (initData, rowsCount, colCount) => {
 	post(rowsCount - chunkFullCount * CHUNK_SIZE);
 };
 
+/** @type {string} */
+let _str = null;
+
 /** @param {string} str */
-const filter = str => {
+const filter = async str => {
+	_str = str;
+
 	const rowsToDisplay = [];
 	const post = () => {
 		const arr = new Uint32Array(rowsToDisplay);
@@ -60,19 +65,23 @@ const filter = str => {
 		}
 	};
 
-	arrForEachChunk(
+	await arrForEachChunk(
 		data,
 		// chunkSize
 		5000,
 		// forEachCallBack
 		forEachCallBack,
-		// chunkCallBack
-		() => {
+		// chunkEndCallBack
+		async () => {
+			await wait(); // let other tasks go
+			if (_str !== str) { return false; }
+
 			if (postedRowsCount !== rowsToDisplay.length) {
 				postedRowsCount = rowsToDisplay.length;
 				post();
 			}
-			// TODO wait for cancel
+
+			return true;
 		}
 	);
 };

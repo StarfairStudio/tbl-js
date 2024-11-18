@@ -96,28 +96,31 @@ export const uint32ArrayWithNumbers = length => {
  * @param {T[]} arr
  * @param {number} chunkSize
  * @param {(el:T, ii:number)=>void} forEachCallBack
- * @param {()=>void} chunkCallBack
+ * @param {()=>Promise<boolean>} chunkEndCallBack
  */
-export const arrForEachChunk = (arr, chunkSize, forEachCallBack, chunkCallBack) => {
+export const arrForEachChunk = async (arr, chunkSize, forEachCallBack, chunkEndCallBack) => {
 	let ii = 0;
 
 	/** @param {number} size */
-	const processChunk = size => {
+	const processChunk = async size => {
 		const chunkLastIndex = ii + size;
 		for (; ii < chunkLastIndex; ii++) {
 			forEachCallBack(arr[ii], ii);
 		}
-		chunkCallBack();
+		return await chunkEndCallBack();
 	};
 
 	const fullChunksCount = Math.trunc(arr.length / chunkSize);
 	for (let chunkIndex = 0; chunkIndex < fullChunksCount; chunkIndex++) {
-		processChunk(chunkSize);
+		if (!await processChunk(chunkSize)) { return; }
 	}
-	processChunk(arr.length - ii);
+	await processChunk(arr.length - ii);
 };
 
 // events
+
+/** @param {number=} ms */
+export const wait = ms =>	new Promise(resolve => setTimeout(resolve, ms ?? 0));
 
 /** @param {Function} func, @param {number} ms */
 export const throttle = (func, ms) => {

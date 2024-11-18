@@ -32,6 +32,7 @@ listen(worker, 'message', /** @param {MessageEvent<import('./worker.js').InitRes
 	switch (evt.data[0]) {
 		case 1: {
 			rowsToDisplay.r = evt.data[1];
+			console.log('rowsDispCount', rowsToDisplay.r.length);
 			tbl.cellsFill();
 			break;
 		}

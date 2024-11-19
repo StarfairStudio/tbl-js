@@ -62,15 +62,18 @@ const filter = async str => {
 				post();
 				forEachCallBack = () => search();
 			}
+		} else if (index === 5_000 && rowsToDisplay.length === 0) {
+			post();
+			forEachCallBack = () => search();
 		}
 	};
 
 	await arrForEachChunk(
 		data,
 		// chunkSize
-		5000,
+		5_000,
 		// forEachCallBack
-		forEachCallBack,
+		(row, index) => forEachCallBack(row, index),
 		// chunkEndCallBack
 		async () => {
 			await wait(); // let other tasks go

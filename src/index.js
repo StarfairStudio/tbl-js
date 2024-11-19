@@ -41,7 +41,6 @@ listen(worker, 'message', /** @param {MessageEvent<import('./worker.js').InitRes
 worker.postMessage(/** @type {import('./worker.js').InitMessageData} */([0, data, 999_500, 20]));
 
 listen(/** @type {HTMLInputElement} */(getById('serch')), 'input', /** @param {InputEvent & { target: HTMLInputElement}} evt */ evt => {
-	rowsToDisplay.r = new Uint32Array(0);
 	worker.postMessage(/** @type {import('./worker.js').FilterMessageData} */([1, evt.target.value.toLowerCase()]));
 	tbl.scrollTop();
 });

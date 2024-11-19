@@ -1,5 +1,5 @@
 import { dataGenerate } from './data-generator.js';
-import { arrExtend, arrForEachChunk, wait } from './utils.js';
+import { arrExtend, arrForEachChunk, uint32ArrayWithNumbers, wait } from './utils.js';
 
 const data = [];
 
@@ -36,37 +36,46 @@ let _str = null;
 const filter = async str => {
 	_str = str;
 
-	const rowsToDisplay = [];
-	const post = () => {
-		const arr = new Uint32Array(rowsToDisplay);
+	/** @param {Uint32Array} arr */
+	const postUint32Array = arr =>
 		// @ts-ignore
 		self.postMessage([1, arr], [arr.buffer]);
-	};
+
+	if (str.length === 0) {
+		postUint32Array(uint32ArrayWithNumbers(data.length));
+		return;
+	}
+
+	const rowsToDisplay = [];
+	const post = () => postUint32Array(new Uint32Array(rowsToDisplay));
 
 	let postedRowsCount = 0;
 
 	/** @param {any[]} row, @param {number} index */
-	let forEachCallBack = (row, index) => {
-		const search = () => {
-			if (row[0]?.toLocaleLowerCase().indexOf(str) !== -1) {
-				rowsToDisplay.push(index);
-				return true;
-			}
-			return false;
-		};
+	const search = (row, index) => {
+		if (row[0]?.toLocaleLowerCase().indexOf(str) !== -1) {
+			rowsToDisplay.push(index);
+			return true;
+		}
+		return false;
+	};
 
-		if (search()) {
+	/** @param {any[]} row, @param {number} index */
+	const searchFirst = (row, index) => {
+		if (search(row, index)) {
 			// first 100 found
 			if (rowsToDisplay.length === 100) {
 				postedRowsCount = rowsToDisplay.length;
 				post();
-				forEachCallBack = () => search();
+				forEachCallBack = search;
 			}
-		} else if (index === 5_000 && rowsToDisplay.length === 0) {
+		} else if ((index === 5_000 || index === data.length - 1) && rowsToDisplay.length === 0) {
 			post();
-			forEachCallBack = () => search();
+			forEachCallBack = search;
 		}
 	};
+
+	let forEachCallBack = searchFirst;
 
 	await arrForEachChunk(
 		data,

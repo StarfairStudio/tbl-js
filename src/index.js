@@ -20,7 +20,7 @@ const tbl = table(
 	// cols
 	['Name', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T'],
 	// rowsCount
-	1000000,
+	1_000_000,
 	// rowsData
 	data,
 	// rowsToDisplay
@@ -43,4 +43,11 @@ worker.postMessage(/** @type {import('./worker.js').InitMessageData} */([0, data
 listen(/** @type {HTMLInputElement} */(getById('serch')), 'input', /** @param {InputEvent & { target: HTMLInputElement}} evt */ evt => {
 	worker.postMessage(/** @type {import('./worker.js').FilterMessageData} */([1, evt.target.value.toLowerCase()]));
 	tbl.scrollTop();
+});
+
+let visualViewportheight = visualViewport.height;
+listen(visualViewport, 'resize', evt => {
+	const height = visualViewport.height;
+	tbl.resize(height - visualViewportheight);
+	visualViewportheight = height;
 });

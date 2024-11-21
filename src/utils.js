@@ -17,12 +17,12 @@ export const divWithContent = (str, className) => {
 /** @param {Partial<CSSStyleDeclaration>} styles */
 export const divWithStyles = styles => {
 	const d = div();
-	setStyles(d, styles);
+	stylesSet(d, styles);
 	return d;
 };
 
 /** @param {HTMLDivElement} el, @param {Partial<CSSStyleDeclaration>} styles */
-const setStyles = (el, styles) =>
+export const stylesSet = (el, styles) =>
 	Object.entries(styles).forEach(style => { el.style[style[0]] = style[1]; });
 
 /**

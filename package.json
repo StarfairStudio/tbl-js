@@ -5,8 +5,9 @@
   "scripts": {
     "lint": "eslint src/**/*.js",
     "tscheck": "node_modules\\.bin\\tsc --noEmit -p ./jsconfig.json",
-    "build": "rollup -c rollup.app.config.js",
-    "build:worker": "rollup -c rollup.app.config.worker.js"
+    "build:index": "rollup -c rollup.app.config.js",
+    "build:worker": "rollup -c rollup.app.config.worker.js",
+    "build": "npm run build:index && npm run build:worker"
   },
   "author": "Alexey Boyko",
   "license": "ISC",

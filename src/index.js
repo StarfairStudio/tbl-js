@@ -27,7 +27,7 @@ const tbl = table(
 	rowsToDisplay
 );
 
-const worker = new Worker(new URL('worker.js', import.meta.url), { type: 'module' });
+const worker = new Worker(new URL('worker.js?v=20241122', import.meta.url), { type: 'module' });
 listen(worker, 'message', /** @param {MessageEvent<import('./worker.js').InitResponceMessageData & import('./worker.js').FilterResponceMessageData>} evt */ evt => {
 	switch (evt.data[0]) {
 		case 1: {

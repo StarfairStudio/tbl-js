@@ -1,20 +1,18 @@
 import { dataGenerate } from './data-generator.js';
 import { table } from './table.js';
-import { arrExtend, listen } from './utils.js';
+import { arrExtend, getById, listen, uint32ArrayWithNumbers } from './utils.js';
 
+/** Indexes in {data} to display. Used for filtering and sorting */
+const rowsToDisplay = { r: uint32ArrayWithNumbers(1_000_000) };
 const data = dataGenerate(500, 20);
 
-const worker = new Worker(new URL('worker.js', import.meta.url), { type: 'module' });
-listen(worker, 'message', /** @param {MessageEvent<any[][]>} evt */ evt => arrExtend(data, evt.data));
-worker.postMessage([0, data, 999500, 20]);
-
-table(
+const tbl = table(
 	// headerDiv
-	/** @type {HTMLDivElement} */(document.getElementById('hdr')),
+	/** @type {HTMLDivElement} */(getById('hdr')),
 	// colRowNumDiv
-	/** @type {HTMLDivElement} */(document.getElementById('nums')),
+	/** @type {HTMLDivElement} */(getById('nums')),
 	// tableDiv
-	/** @type {HTMLDivElement} */(document.getElementById('tbl')),
+	/** @type {HTMLDivElement} */(getById('tbl')),
 	// rowHeight
 	48,
 	// cell wifth
@@ -22,6 +20,34 @@ table(
 	// cols
 	['Name', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T'],
 	// rowsCount
-	1000000,
-	data
+	1_000_000,
+	// rowsData
+	data,
+	// rowsToDisplay
+	rowsToDisplay
 );
+
+const worker = new Worker(new URL('worker.js?v=20241122', import.meta.url), { type: 'module' });
+listen(worker, 'message', /** @param {MessageEvent<import('./worker.js').InitResponceMessageData & import('./worker.js').FilterResponceMessageData>} evt */ evt => {
+	switch (evt.data[0]) {
+		case 1: {
+			rowsToDisplay.r = evt.data[1];
+			tbl.cellsFill();
+			break;
+		}
+		case 0: arrExtend(data, evt.data[1]); break;
+	}
+});
+worker.postMessage(/** @type {import('./worker.js').InitMessageData} */([0, data, 999_500, 20]));
+
+listen(/** @type {HTMLInputElement} */(getById('serch')), 'input', /** @param {InputEvent & { target: HTMLInputElement}} evt */ evt => {
+	worker.postMessage(/** @type {import('./worker.js').FilterMessageData} */([1, evt.target.value.toLowerCase()]));
+	tbl.scrollTop();
+});
+
+let visualViewportheight = visualViewport.height;
+listen(visualViewport, 'resize', evt => {
+	const height = visualViewport.height;
+	tbl.resize(height - visualViewportheight);
+	visualViewportheight = height;
+});

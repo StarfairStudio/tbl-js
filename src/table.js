@@ -1,27 +1,36 @@
-import { div, divWithContent, divWithStyles, listen } from './utils.js';
+import { div, divWithContent, divWithStyles, listen, stylesSet } from './utils.js';
 
-const MAX_HEIGHT_PX = 15000000;
+const MAX_HEIGHT_PX = 15_000_000;
 
 /**
  * @param {HTMLDivElement} headerDiv
  * @param {HTMLDivElement} numsDiv
  * @param {HTMLDivElement} tableDiv
  * @param {number} rowHeight
- * @param {number} cellWidth // TODO: diffenrent col width
+ * @param {number} cellWidth // TODO: different col width
  * @param {string[]} cols
  * @param {number} rowsCount
  * @param {any[][]} rowsData
+ * @param {{r:Uint32Array}} rowsToDisplay
  */
-export const table = (headerDiv, numsDiv, tableDiv, rowHeight, cellWidth, cols, rowsCount, rowsData) => {
+export const table = (headerDiv, numsDiv, tableDiv, rowHeight, cellWidth, cols, rowsCount, rowsData, rowsToDisplay) => {
 	let topRowDataIndex = 0;
 
 	//
 	// read dom
 
-	const viewPortHeight = tableDiv.clientHeight;
-	const rowsCountViewPort = Math.ceil(viewPortHeight / rowHeight) + 1;
+	let viewPortHeight = tableDiv.clientHeight;
 	const allRowsHeight = rowsCount * rowHeight;
 	const scrolHeight = Math.min(allRowsHeight, MAX_HEIGHT_PX);
+
+	const scrollYKoefCalc = () =>
+		// if {allRowsHeight} > 15 million -> we have to applay koef on scroll
+		// if {allRowsHeight} <= 15 million -> {scrollYKoef} = 1
+		(allRowsHeight - viewPortHeight) / (scrolHeight - viewPortHeight);
+	let scrollYKoef = scrollYKoefCalc();
+
+	const rowsCountViewPortCalc = () => Math.ceil(viewPortHeight / rowHeight) + 1;
+	let rowsCountViewPort = rowsCountViewPortCalc();
 
 	//
 	// wright dom
@@ -33,49 +42,52 @@ export const table = (headerDiv, numsDiv, tableDiv, rowHeight, cellWidth, cols, 
 
 	const [tableContentDiv, tableOverlayDiv] = tableCreate(
 		tableDiv,
-		// tableDivHeight
+		// viewPortHeight
 		viewPortHeight,
 		// scrollDivHeight
 		scrolHeight,
 		// scrollDivWidth
 		cellWidth * cols.length
 	);
-	const tableCells = rowsCreate(tableContentDiv, cols.length, rowsCountViewPort);
-	const _tableCellsFill = () => tableCellsFill(tableCells, rowsData, topRowDataIndex);
-	_tableCellsFill();
-
-	// nums column
-
 	const numsContentDiv = numsColCreate(numsDiv, viewPortHeight);
-	const numsCels = numsCellsCreate(numsContentDiv, rowsCountViewPort);
-	const _numsCellsFill = () => numsCellsFill(numsCels, topRowDataIndex, rowsCount);
-	_numsCellsFill();
+
+	/** @type {Array<HTMLDivElement[]>} */ const tableCells = [];
+	/** @type {HTMLDivElement[]} */	const numsCels = [];
+
+	/** @param {number} rowsToAdd */
+	const rowsAdd = rowsToAdd => {
+		tableCellsAdd(tableCells, tableContentDiv, cols.length, rowsToAdd);
+		numCellsAdd(numsCels, numsContentDiv, rowsToAdd);
+	};
+	rowsAdd(rowsCountViewPort);
+
+	const cellsFill = () => {
+		tableCellsFill(tableCells, rowsData, rowsToDisplay, topRowDataIndex);
+		numsCellsFill(numsCels, topRowDataIndex, rowsCount);
+	};
+	cellsFill();
 
 	//
 	// scroll
 
 	let scrollTop = 0;
 	let scrollLeft = 0;
+	let translateY = 0;
+	const scroll = () => {
+		tableContentDiv.style.transform = `translate(${scrollLeft}px, ${translateY}px)`;
+		numsContentDiv.style.transform = `translateY(${translateY}px)`;
+	};
 
-	{
-		// if {allRowsHeight} > 15 million -> we have to applay koef on scroll
-		// if {allRowsHeight} <= 15 million -> {scrollYKoef} = 1
-		const scrollYKoef = (allRowsHeight - viewPortHeight) / (scrolHeight - viewPortHeight);
-		let translateY = 0;
-		listen(tableOverlayDiv, 'scroll', /** @param {Event & {target:HTMLDivElement}} evt */ evt => {
-			scrollTop = evt.target.scrollTop * scrollYKoef;
-			scrollLeft = -evt.target.scrollLeft;
-			topRowDataIndex = Math.trunc(scrollTop / rowHeight);
-			translateY = -scrollTop % rowHeight;
+	listen(tableOverlayDiv, 'scroll', /** @param {Event & {target:HTMLDivElement}} evt */ evt => {
+		scrollTop = evt.target.scrollTop * scrollYKoef;
+		scrollLeft = -evt.target.scrollLeft;
+		topRowDataIndex = Math.trunc(scrollTop / rowHeight);
+		translateY = -scrollTop % rowHeight;
 
-			headerDiv.style.transform = `translateX(${scrollLeft}px)`;
-			tableContentDiv.style.transform = `translate(${scrollLeft}px, ${translateY}px)`;
-			_tableCellsFill();
-
-			numsContentDiv.style.transform = `translateY(${translateY}px)`;
-			_numsCellsFill();
-		});
-	}
+		headerDiv.style.transform = `translateX(${scrollLeft}px)`;
+		scroll();
+		cellsFill();
+	});
 
 	listen(tableOverlayDiv, 'click', /** @param {MouseEvent & {target:HTMLDivElement}} evt */ evt => {
 		const rowsDataIndex = Math.trunc(
@@ -84,18 +96,56 @@ export const table = (headerDiv, numsDiv, tableDiv, rowHeight, cellWidth, cols, 
 		);
 		console.log(rowsDataIndex);
 	});
+
+	/** @param {number} heigthDelta */
+	const scrollResize = heigthDelta => {
+		viewPortHeight = viewPortHeight + heigthDelta;
+		scrollYKoef = scrollYKoefCalc();
+
+		const heightStyle = { height: `${viewPortHeight}px` };
+		stylesSet(tableContentDiv, heightStyle);
+		stylesSet(tableOverlayDiv, heightStyle);
+		stylesSet(numsContentDiv, heightStyle);
+	};
+
+	return {
+		cellsFill,
+		scrollTop: () => {
+			scrollTop = 0;
+			translateY = 0;
+			topRowDataIndex = 0;
+			tableOverlayDiv.scrollTo({ top: 0 });
+			scroll();
+			cellsFill();
+		},
+		/** @param {number} heigthDelta */
+		resize: heigthDelta => {
+			if (heigthDelta === 0) { return; }
+
+			scrollResize(heigthDelta);
+			if (heigthDelta < 0) { return; }
+
+			const _rowsCountViewPort = rowsCountViewPortCalc();
+			if (rowsCountViewPort >= _rowsCountViewPort) { return; }
+
+			rowsAdd(_rowsCountViewPort - rowsCountViewPort);
+			rowsCountViewPort = _rowsCountViewPort;
+
+			cellsFill();
+		}
+	};
 };
 
 /**
  * @param {HTMLDivElement} tableDiv
- * @param {number} tableDivHeight
+ * @param {number} viewPortHeight
  * @param {number} scrollDivHeight
  * @param {number} scrollDivWidth
  */
-const tableCreate = (tableDiv, tableDivHeight, scrollDivHeight, scrollDivWidth) => {
-	const contentDiv = divWithStyles({ height: `${tableDivHeight}px`, width: `${scrollDivWidth}px` });
-	const overlayDiv = divWithStyles({
-		height: `${tableDivHeight}px`,
+const tableCreate = (tableDiv, viewPortHeight, scrollDivHeight, scrollDivWidth) => {
+	const tableContentDiv = divWithStyles({ height: `${viewPortHeight}px`, width: `${scrollDivWidth}px` });
+	const tableOverlayDiv = divWithStyles({
+		height: `${viewPortHeight}px`,
 		width: '100%',
 		overflow: 'auto',
 		position: 'absolute',
@@ -105,41 +155,20 @@ const tableCreate = (tableDiv, tableDivHeight, scrollDivHeight, scrollDivWidth) 
 	});
 
 	const scrollDiv = divWithStyles({ height: `${scrollDivHeight}px`, width: `${scrollDivWidth}px` });
-	overlayDiv.append(scrollDiv);
+	tableOverlayDiv.append(scrollDiv);
 
-	tableDiv.append(contentDiv, overlayDiv);
+	tableDiv.append(tableContentDiv, tableOverlayDiv);
 
-	return [contentDiv, overlayDiv];
+	return [tableContentDiv, tableOverlayDiv];
 };
 
-/**
- * @param {HTMLDivElement[][]} tableCells
- * @param {any[][]} rowsData
- * @param {number} fromRowsDataIndex
- */
-const tableCellsFill = (tableCells, rowsData, fromRowsDataIndex) => {
-	let row = 0;
-	for (; fromRowsDataIndex < rowsData.length && row < tableCells.length; fromRowsDataIndex++, row++) {
-		const rowData = rowsData[fromRowsDataIndex];
-		tableCells[row].forEach((cellDiv, col) => {
-			cellDiv.textContent = rowData[col];
-		});
-		tableCells[row][0].parentElement.style.display = 'flex';
-	}
-
-	for (; row < tableCells.length; row++) {
-		tableCells[row][0].parentElement.style.display = 'none';
-	}
-};
-
-/** @param {HTMLDivElement} cntDiv, @param {number} colsCount, @param {number} rowsCount */
-const rowsCreate = (cntDiv, colsCount, rowsCount) => {
-	/** @type {Array<HTMLDivElement[]>} */
-	const cells = new Array(rowsCount);
-
+/** @param {Array<HTMLDivElement[]>} tableCells, @param {HTMLDivElement} tableContentDiv, @param {number} colsCount, @param {number} rowsCount */
+const tableCellsAdd = (tableCells, tableContentDiv, colsCount, rowsCount) => {
 	for (let row = 0; row < rowsCount; row++) {
 		/** @type {HTMLDivElement[]} */
-		const rowCels = cells[row] = new Array(colsCount);
+		const rowCels = new Array(colsCount);
+		tableCells.push(rowCels);
+
 		const rowDiv = div('rw');
 
 		for (let col = 0; col < colsCount; col++) {
@@ -147,10 +176,28 @@ const rowsCreate = (cntDiv, colsCount, rowsCount) => {
 			rowDiv.append(cellDiv);
 		}
 
-		cntDiv.append(rowDiv);
+		tableContentDiv.append(rowDiv);
+	}
+};
+
+/**
+ * @param {HTMLDivElement[][]} tableCells
+ * @param {any[][]} rowsData
+ * @param {{r:Uint32Array}} rowsToDisplay
+ * @param {number} fromRowsDataIndex
+ */
+const tableCellsFill = (tableCells, rowsData, rowsToDisplay, fromRowsDataIndex) => {
+	let row = 0;
+	for (; fromRowsDataIndex < rowsToDisplay.r.length && fromRowsDataIndex < rowsData.length && row < tableCells.length; fromRowsDataIndex++, row++) {
+		const rowData = rowsData[rowsToDisplay.r[fromRowsDataIndex]];
+		tableCells[row].forEach((cellDiv, col) => {
+			cellDiv.textContent = rowData[col];
+		});
 	}
 
-	return cells;
+	for (; row < tableCells.length; row++) {
+		tableCells[row].forEach(cellDiv => { cellDiv.textContent = null; });
+	}
 };
 
 /**
@@ -163,20 +210,13 @@ const numsColCreate = (numsDiv, numsDivHeight) => {
 	return contentDiv;
 };
 
-/**
- * @param {HTMLDivElement} numsDiv
- * @param {number} rowsCount
- */
-const numsCellsCreate = (numsDiv, rowsCount) => {
-	/** @type {HTMLDivElement[]} */
-	const cells = [];
-
+/** @param {HTMLDivElement[]} cells, @param {HTMLDivElement} numsDiv, @param {number} rowsCount */
+const numCellsAdd = (cells, numsDiv, rowsCount) => {
 	for (let row = 0; row < rowsCount; row++) {
 		cells.push(div('nums-rw'));
 	}
 
 	numsDiv.append(...cells);
-	return cells;
 };
 
 /**

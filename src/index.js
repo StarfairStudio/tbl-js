@@ -30,12 +30,14 @@ const tbl = table(
 const worker = new Worker(new URL('worker.js?v=20241122', import.meta.url), { type: 'module' });
 listen(worker, 'message', /** @param {MessageEvent<import('./worker.js').InitResponceMessageData & import('./worker.js').FilterResponceMessageData>} evt */ evt => {
 	switch (evt.data[0]) {
-		case 1: {
+		case 1:
 			rowsToDisplay.r = evt.data[1];
 			tbl.cellsFill();
 			break;
-		}
-		case 0: arrExtend(data, evt.data[1]); break;
+		case 0:
+			arrExtend(data, evt.data[1]);
+			tbl.cellsFill();
+			break;
 	}
 });
 worker.postMessage(/** @type {import('./worker.js').InitMessageData} */([0, data, 999_500, 20]));

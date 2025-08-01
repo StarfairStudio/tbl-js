@@ -1,18 +1,18 @@
-import { dataGenerate } from './data-generator.js';
-import { table } from './table.js';
-import { arrExtend, getById, listen, uint32ArrayWithNumbers } from './utils.js';
-
+// @ts-nocheck
 /** Indexes in {data} to display. Used for filtering and sorting */
-const rowsToDisplay = { r: uint32ArrayWithNumbers(1_000_000) };
-const data = dataGenerate(500, 20);
+const rowsToDisplay = { r: TableFast.uint32ArrayWithNumbers(1_000_000) };
+const tableData = DataGen.dataGenerate(500, 20);
 
-const tbl = table(
+const tbl = TableFast.table(
 	// headerDiv
-	/** @type {HTMLDivElement} */(getById('hdr')),
+	/** @type {HTMLDivElement} */
+	(TableFast.getById('hdr')),
 	// colRowNumDiv
-	/** @type {HTMLDivElement} */(getById('nums')),
+	/** @type {HTMLDivElement} */
+	(TableFast.getById('nums')),
 	// tableDiv
-	/** @type {HTMLDivElement} */(getById('tbl')),
+	/** @type {HTMLDivElement} */
+	(TableFast.getById('tbl')),
 	// rowHeight
 	48,
 	// cell wifth
@@ -22,33 +22,33 @@ const tbl = table(
 	// rowsCount
 	1_000_000,
 	// rowsData
-	data,
+	tableData,
 	// rowsToDisplay
 	rowsToDisplay
 );
 
-const worker = new Worker(new URL('worker.js?v=20241127', import.meta.url), { type: 'module' });
-listen(worker, 'message', /** @param {MessageEvent<import('./worker.js').InitResponceMessageData & import('./worker.js').FilterResponceMessageData>} evt */ evt => {
+const worker = new Worker('worker_bundl.js');
+TableFast.listen(worker, 'message', /** @param {MessageEvent<import('./worker.js').InitResponceMessageData & import('./worker.js').FilterResponceMessageData>} evt */ evt => {
 	switch (evt.data[0]) {
 		case 1:
 			rowsToDisplay.r = evt.data[1];
 			tbl.cellsFill();
 			break;
 		case 0:
-			arrExtend(data, evt.data[1]);
+			TableFast.arrExtend(tableData, evt.data[1]);
 			tbl.cellsFill();
 			break;
 	}
 });
-worker.postMessage(/** @type {import('./worker.js').InitMessageData} */([0, data, 999_500, 20]));
+worker.postMessage(([0, tableData, 999_500, 20]));
 
-listen(/** @type {HTMLInputElement} */(getById('serch')), 'input', /** @param {InputEvent & { target: HTMLInputElement}} evt */ evt => {
-	worker.postMessage(/** @type {import('./worker.js').FilterMessageData} */([1, evt.target.value.toLowerCase()]));
+TableFast.listen(TableFast.getById('serch'), 'input', evt => {
+	worker.postMessage(([1, evt.target.value.toLowerCase()]));
 	tbl.scrollTop();
 });
 
 let visualViewportheight = visualViewport.height;
-listen(visualViewport, 'resize', evt => {
+TableFast.listen(visualViewport, 'resize', evt => {
 	const height = visualViewport.height;
 	tbl.resize(height - visualViewportheight);
 	visualViewportheight = height;
